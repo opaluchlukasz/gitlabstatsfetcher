@@ -6,9 +6,8 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Checkbox from "@material-ui/core/Checkbox";
 
 export default class StageChooser extends React.Component {
-
     handleSelection = event => {
-        const {handleChange} = this.props;
+        const { handleChange } = this.props;
         handleChange(event);
     };
 

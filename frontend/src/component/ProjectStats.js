@@ -16,21 +16,26 @@ export default class ProjectStats extends React.Component {
 
     loadData = () => {
         const {projectId} = this.state;
+
+        function groupByStages(jobs) {
+            return _(jobs)
+                .groupBy('stage')
+                .reduce((array, children, key) => {
+                    array.push({
+                        stage: key,
+                        jobNames: _(children).map(job => job.name).uniq().value()
+                    });
+                    return array;
+                }, []);
+        }
+
         if (projectId) {
             fetch(`/v1/projects/${this.state.projectId}/jobs`)
                 .then(res => res.json())
                 .then((jobs) => {
                     this.setState({
                         jobs,
-                        stages: _(jobs)
-                            .groupBy('stage')
-                            .reduce(function (array, children, key) {
-                                array.push({
-                                    stage: key,
-                                    jobNames: _(children).map(job => job.name).uniq().value()
-                                });
-                                return array;
-                            }, [])
+                        stages: groupByStages(jobs)
                     });
                 });
         }
@@ -55,7 +60,7 @@ export default class ProjectStats extends React.Component {
     }
 
     render() {
-        const {stages, selectedSteps} = this.state;
+        const { stages, selectedSteps } = this.state;
 
         return (
             <Grid container spacing={3}>

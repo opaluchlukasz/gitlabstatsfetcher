@@ -1,28 +1,33 @@
 import React from "react";
 import Chart from 'react-apexcharts'
 import _ from 'lodash';
+import CommitTooltip from "./CommitTooltip";
+import ReactDOMServer from 'react-dom/server';
+import Checkbox from "@material-ui/core/Checkbox";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 
 class JobDurationChart extends React.Component {
     state = {
-        jobs: []
+        masterOnly: true
     };
 
-    static getDerivedStateFromProps(nextProps, prevState) {
-        if (nextProps.jobs !== prevState.jobs) {
+    toggleMasterOnly = () => {
+        this.setState(prevState => {
             return {
-                jobs: nextProps.jobs,
-            };
-        } else {
-            return null;
-        }
-    }
+                ...prevState,
+                masterOnly: !prevState.masterOnly
+            }
+        });
+    };
 
     render() {
-        let narrowed = _(this.state.jobs)
-            .filter(d => d.status === 'success')
-            .filter(d => d.ref === 'master')
-            .filter(d => d.duration)
-            .filter(d => d.name === this.props.jobName)
+        const { jobs, jobName } = this.props;
+
+        let narrowed = _(jobs)
+            .filter(job => job.status === 'success')
+            .filter(job => !this.state.masterOnly || job.ref === 'master')
+            .filter(job => job.duration)
+            .filter(job => job.name === jobName)
             .value();
 
         const series = [{
@@ -46,13 +51,19 @@ class JobDurationChart extends React.Component {
                     autoSelected: 'zoom'
                 }
             },
+            title: {
+                text: `Duration of ${jobName} job`,
+                align: 'left'
+            },
+            stroke: {
+                curve: 'straight'
+            },
             dataLabels: {
                 enabled: false
             },
             tooltip: {
                 custom: function ({seriesIndex, dataPointIndex, w}) {
-                    return '<div class="arrow_box">' +
-                        '<span>' + w.globals.initialSeries[seriesIndex].data[dataPointIndex].commit.message + '</span></div>'
+                    return ReactDOMServer.renderToString(<CommitTooltip job={w.globals.initialSeries[seriesIndex].data[dataPointIndex]} />);
                 }
             },
             xaxis: {
@@ -62,7 +73,13 @@ class JobDurationChart extends React.Component {
         };
 
         return (
-            <Chart options={options} series={series} type="area" width={900} height={400}/>
+            <div>
+                <FormControlLabel
+                    control={<Checkbox checked={this.state.masterOnly} onChange={this.toggleMasterOnly} />}
+                    label="Master only jobs"
+                />
+                <Chart options={options} series={series} type="area" width={900} height={400}/>
+            </div>
         )
     }
 }
