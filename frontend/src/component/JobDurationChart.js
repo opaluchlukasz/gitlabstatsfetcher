@@ -5,6 +5,7 @@ import CommitTooltip from "./CommitTooltip";
 import ReactDOMServer from 'react-dom/server';
 import Checkbox from "@material-ui/core/Checkbox";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Duration from "./Duration";
 
 class JobDurationChart extends React.Component {
     state = {
@@ -23,7 +24,7 @@ class JobDurationChart extends React.Component {
     render() {
         const { jobs, jobName } = this.props;
 
-        let narrowed = _(jobs)
+        const narrowed = _(jobs)
             .filter(job => job.status === 'success')
             .filter(job => !this.state.masterOnly || job.ref === 'master')
             .filter(job => job.duration)
@@ -62,12 +63,16 @@ class JobDurationChart extends React.Component {
                 enabled: false
             },
             tooltip: {
-                custom: function ({seriesIndex, dataPointIndex, w}) {
-                    return ReactDOMServer.renderToString(<CommitTooltip job={w.globals.initialSeries[seriesIndex].data[dataPointIndex]} />);
-                }
+                custom: ({seriesIndex, dataPointIndex, w}) =>
+                    (ReactDOMServer.renderToString(<CommitTooltip job={w.globals.initialSeries[seriesIndex].data[dataPointIndex]} />))
             },
             xaxis: {
                 type: 'datetime'
+            },
+            yaxis: {
+                labels: {
+                    formatter: value => ReactDOMServer.renderToStaticMarkup(<Duration duration={value} />),
+                }
             }
 
         };

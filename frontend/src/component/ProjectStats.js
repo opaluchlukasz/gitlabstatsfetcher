@@ -17,7 +17,7 @@ export default class ProjectStats extends React.Component {
     loadData = () => {
         const {projectId} = this.state;
 
-        function groupByStages(jobs) {
+        const groupByStages = jobs => {
             return _(jobs)
                 .groupBy('stage')
                 .reduce((array, children, key) => {
@@ -27,7 +27,7 @@ export default class ProjectStats extends React.Component {
                     });
                     return array;
                 }, []);
-        }
+        };
 
         if (projectId) {
             fetch(`/v1/projects/${this.state.projectId}/jobs`)
