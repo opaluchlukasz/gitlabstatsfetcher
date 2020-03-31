@@ -1,8 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 
-const Duration = props => {
-    const { duration } = props;
+const Duration = ({ duration }) => {
     return (
         <>{ moment.duration(duration, 'seconds').format({ template: 'mm[m] ss[s]' }) }</>
     );

@@ -40,6 +40,16 @@ class JobDurationChart extends React.Component {
             }))
         }];
 
+        const renderTooltip = ({seriesIndex, dataPointIndex, w}) => {
+            const currentRun = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
+            const previousRunDuration = dataPointIndex > 0 ? w.globals.initialSeries[seriesIndex].data[dataPointIndex - 1].duration : null;
+            return ReactDOMServer.renderToString(
+                <CommitTooltip
+                    job={currentRun}
+                    previousRunDuration={previousRunDuration}
+                />);
+        };
+
         const options = {
             chart: {
                 id: 'apexchart',
@@ -63,8 +73,7 @@ class JobDurationChart extends React.Component {
                 enabled: false
             },
             tooltip: {
-                custom: ({seriesIndex, dataPointIndex, w}) =>
-                    (ReactDOMServer.renderToString(<CommitTooltip job={w.globals.initialSeries[seriesIndex].data[dataPointIndex]} />))
+                custom: renderTooltip
             },
             xaxis: {
                 type: 'datetime'
