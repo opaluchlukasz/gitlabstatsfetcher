@@ -6,6 +6,8 @@ import ReactDOMServer from 'react-dom/server';
 import Checkbox from "@material-ui/core/Checkbox";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Duration from "./Duration";
+import Grid from "@material-ui/core/Grid";
+import {Paper} from "@material-ui/core";
 
 class JobDurationChart extends React.Component {
     state = {
@@ -30,6 +32,10 @@ class JobDurationChart extends React.Component {
             .filter(job => job.duration)
             .filter(job => job.name === jobName)
             .value();
+
+        const arrAvg = arr => arr.reduce((a,b) => a + b, 0) / arr.length;
+
+        const average = arrAvg(_.map(narrowed, 'duration'));
 
         const series = [{
             name: 'duration',
@@ -62,10 +68,6 @@ class JobDurationChart extends React.Component {
                     autoSelected: 'zoom'
                 }
             },
-            title: {
-                text: `Duration of ${jobName} job`,
-                align: 'left'
-            },
             stroke: {
                 curve: 'straight'
             },
@@ -87,13 +89,43 @@ class JobDurationChart extends React.Component {
         };
 
         return (
-            <div>
-                <FormControlLabel
-                    control={<Checkbox checked={this.state.masterOnly} onChange={this.toggleMasterOnly} />}
-                    label="Master only jobs"
-                />
-                <Chart options={options} series={series} type="area" width={900} height={400}/>
-            </div>
+            <Grid xs={12}
+                  container
+                  direction="column"
+                  justify="flex-start"
+                  alignItems="flex-center">
+                <Paper>
+                <Grid
+                    xs={6}
+                    container
+                    justify="flex-center"
+                    alignItems="flex-center"
+                >
+                    <Grid xs={4}>
+                        <strong>{`Duration of ${jobName} job`}</strong>
+                    </Grid>
+                </Grid>
+                <Grid
+                    xs={6}
+                    container
+                    direction="row"
+                    justify="flex-start"
+                    alignItems="flex-center"
+                >
+                    <Grid item xs={4} className="center">
+                        <div>Average: <Duration duration={average}/></div>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <FormControlLabel
+                            control={<Checkbox checked={this.state.masterOnly} onChange={this.toggleMasterOnly}/>}
+                            label="Master only jobs"
+                        />
+                    </Grid>
+                </Grid>
+                <Chart options={options} series={series} type="area" height={600}/>
+                </Paper>
+            </Grid>
+
         )
     }
 }

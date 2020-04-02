@@ -15,3 +15,9 @@ code {
 .p-b-5 {
   padding-bottom: 5px;
 }
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

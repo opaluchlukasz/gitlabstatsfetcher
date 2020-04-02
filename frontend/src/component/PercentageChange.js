@@ -1,5 +1,4 @@
 import React from 'react';
-import moment from 'moment';
 
 const PercentageChange = ({ current, previous }) => {
     if (!current || !previous) {

@@ -1,21 +1,21 @@
 import React from "react";
-import Button from '@material-ui/core/Button';
-import TextField from '@material-ui/core/TextField';
 import _ from 'lodash';
-import StageChooser from "./StageChooser";
 import JobDurationChart from "./JobDurationChart";
 import Grid from "@material-ui/core/Grid";
-import FormGroup from "@material-ui/core/FormGroup";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import ProjectSelector from "./ProjectSelector";
+import StageSelector from "./StageSelector";
 
 export default class ProjectStats extends React.Component {
     state = {
         stages: [],
         selectedSteps: [],
-        jobs: []
+        jobs: [],
+        showSpinner: false
     };
 
     loadData = () => {
-        const {projectId} = this.state;
+        const { projectId } = this.state;
 
         const groupByStages = jobs => {
             return _(jobs)
@@ -30,11 +30,15 @@ export default class ProjectStats extends React.Component {
         };
 
         if (projectId) {
+            this.setState({
+                showSpinner: true
+            });
             fetch(`/v1/projects/${this.state.projectId}/jobs`)
                 .then(res => res.json())
                 .then((jobs) => {
                     this.setState({
                         jobs,
+                        showSpinner: false,
                         stages: groupByStages(jobs)
                     });
                 });
@@ -55,32 +59,24 @@ export default class ProjectStats extends React.Component {
         });
     };
 
-    renderStageChooser(stage) {
-        return (<StageChooser key={stage.stage} stage={stage} handleChange={this.jobNameSelectionChanged}/>);
+    renderStageChooser() {
+        return (<StageSelector stages={this.state.stages} handleChange={this.jobNameSelectionChanged}/>);
     }
 
     render() {
-        const { stages, selectedSteps } = this.state;
+        const { selectedSteps, showSpinner } = this.state;
 
         return (
             <Grid container spacing={3}>
                 <Grid item xs={12}>
-                        <div>
-                            <FormGroup row>
-                                <TextField
-                                    id="outlined-secondary"
-                                    label="Project Id"
-                                    variant="outlined"
-                                    color="secondary"
-                                    onChange={this.setProjectId}
-                                />
-                                <Button variant="contained" color="primary" onClick={this.loadData}>
-                                    Load
-                                </Button>
-                            </FormGroup>
-                        </div>
-                        {stages.map(stage => this.renderStageChooser(stage))}
-                        {selectedSteps.map(jobName => this.renderDurationChart(jobName))}
+                    <ProjectSelector setProjectId={this.setProjectId} loadData={this.loadData} />
+                    { showSpinner ?
+                        <CircularProgress /> :
+                        <>
+                            {this.renderStageChooser()}
+                            {selectedSteps.map(jobName => this.renderDurationChart(jobName))}
+                        </>
+                    }
                 </Grid>
             </Grid>
         );
