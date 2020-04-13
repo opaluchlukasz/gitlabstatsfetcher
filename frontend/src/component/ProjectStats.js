@@ -31,7 +31,8 @@ export default class ProjectStats extends React.Component {
 
         if (projectId) {
             this.setState({
-                showSpinner: true
+                showSpinner: true,
+                selectedSteps: [],
             });
             fetch(`/v1/projects/${this.state.projectId}/jobs`)
                 .then(res => res.json())

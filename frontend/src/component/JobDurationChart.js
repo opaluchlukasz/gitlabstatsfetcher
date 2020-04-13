@@ -53,6 +53,7 @@ class JobDurationChart extends React.Component {
                 <CommitTooltip
                     job={currentRun}
                     previousRunDuration={previousRunDuration}
+                    averageDuration={average}
                 />);
         };
 
