@@ -8,6 +8,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Duration from "./Duration";
 import Grid from "@material-ui/core/Grid";
 import {Paper} from "@material-ui/core";
+import regression from 'regression';
 
 class JobDurationChart extends React.Component {
     state = {
@@ -35,7 +36,11 @@ class JobDurationChart extends React.Component {
 
         const arrAvg = arr => arr.reduce((a,b) => a + b, 0) / arr.length;
 
-        const average = arrAvg(_.map(narrowed, 'duration'));
+        const durations = _.map(narrowed, 'duration');
+        const average = arrAvg(durations);
+        const indexWithDuration = _.map(durations, (duration, i) => ([i, duration]));
+        const dates = _.map(narrowed, run => new Date(run.startedAt).getTime());
+        const regressionResult = regression.linear(indexWithDuration);
 
         const series = [{
             name: 'duration',
@@ -44,11 +49,15 @@ class JobDurationChart extends React.Component {
                 x: new Date(d.startedAt).getTime(),
                 y: d.duration,
             }))
+        },
+        {
+            name: 'trend',
+            data: _.map(dates, (date, index) => ({ x: date, y: regressionResult.predict(index) }))
         }];
 
-        const renderTooltip = ({seriesIndex, dataPointIndex, w}) => {
-            const currentRun = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
-            const previousRunDuration = dataPointIndex > 0 ? w.globals.initialSeries[seriesIndex].data[dataPointIndex - 1].duration : null;
+        const renderTooltip = ({dataPointIndex, w}) => {
+            const currentRun = w.globals.initialSeries[0].data[dataPointIndex];
+            const previousRunDuration = dataPointIndex > 0 ? w.globals.initialSeries[0].data[dataPointIndex - 1].duration : null;
             return ReactDOMServer.renderToString(
                 <CommitTooltip
                     job={currentRun}
@@ -76,6 +85,7 @@ class JobDurationChart extends React.Component {
                 enabled: false
             },
             tooltip: {
+                shared: true,
                 custom: renderTooltip
             },
             xaxis: {
@@ -90,28 +100,25 @@ class JobDurationChart extends React.Component {
         };
 
         return (
-            <Grid xs={12}
+            <Grid
                   container
                   direction="column"
-                  justify="flex-start"
-                  alignItems="flex-center">
+                  justify="flex-start">
                 <Paper>
                 <Grid
-                    xs={6}
                     container
-                    justify="flex-center"
-                    alignItems="flex-center"
+                    justify="space-around"
+                    alignItems="center"
                 >
-                    <Grid xs={4}>
+                    <Grid>
                         <strong>{`Duration of ${jobName} job`}</strong>
                     </Grid>
                 </Grid>
                 <Grid
-                    xs={6}
                     container
                     direction="row"
                     justify="flex-start"
-                    alignItems="flex-center"
+                    alignItems="center"
                 >
                     <Grid item xs={4} className="center">
                         <div>Average: <Duration duration={average}/></div>
